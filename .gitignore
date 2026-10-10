@@ -1,0 +1,10 @@
+# 个人待办数据由程序自动生成，不纳入代码版本。
+/tasks.json
+
+# Python 运行时生成的缓存。
+__pycache__/
+*.py[cod]
+
+# 本地虚拟环境。
+/.venv/
+/venv/
