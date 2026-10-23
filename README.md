@@ -1,14 +1,135 @@
-# 命令行待办清单
+# 待办清单
 
-一个用于学习 Python 和 vibe coding 的小项目，支持添加、查看、编辑、删除、
-标记完成、优先级、截止日期、标签、筛选、搜索和统计。
+一个用于学习 Python 和 vibe coding 的小项目，正在从命令行版本迁移到本地 Web 应用。
+
+## Web 版（开发中）
+
+技术栈：Python + FastAPI + SQLite + Jinja2 + 原生 HTML/CSS/JS。
+
+### 环境与安装
+
+需要 Python 3.10 或以上版本。在 `todo_cli` 目录执行：
+
+```powershell
+python -m venv .venv
+.\.venv\Scripts\Activate.ps1
+python -m pip install -r requirements-dev.txt
+```
+
+- `.venv/` 是本项目独立的 Python 环境，依赖不会污染系统全局环境。
+- `requirements.txt` 是运行依赖；`requirements-dev.txt` 额外包含测试工具。
+- 如果 PowerShell 禁止运行 `Activate.ps1`，可以直接用 `.\.venv\Scripts\python.exe` 代替
+  `python`，或临时执行 `Set-ExecutionPolicy -Scope Process Bypass`。
+
+### 启动
+
+```powershell
+.\.venv\Scripts\python.exe -m uvicorn app.main:app --reload
+```
+
+然后在浏览器打开 <http://127.0.0.1:8000>。`--reload` 会在代码变化时自动重启服务，只用于开发。
+
+### 使用
+
+在页面上可以添加待办（内容、优先级、截止日期、标签）、点击圆圈切换完成状态、
+编辑、删除，以及一键清空已完成。数据保存在 `data/todo.db`（SQLite），
+首次启动时自动创建，已被 `.gitignore` 排除。
+
+“筛选与排序”区域支持按状态（全部、未完成、已完成、已逾期）、优先级和标签筛选，
+按标题搜索，以及按编号、优先级、截止日期排序。这些条件也可以直接写在 URL 里，例如：
+
+```text
+http://127.0.0.1:8000/?status=pending&priority=high&tag=工作&q=周报&sort=due
+```
+
+页面顶部的统计会显示总数、未完成、已完成、已逾期，以及各优先级的数量。
+操作成功后会显示绿色提示；表单校验失败时会保留刚填写的内容。
+
+### 测试
+
+测试使用 `pytest` 和 `httpx2`。每个测试通过 `TODO_DB` 环境变量指向临时数据库，
+不会读写 `data/todo.db`：
+
+```powershell
+.\.venv\Scripts\python.exe -m pytest
+```
+
+测试覆盖增删改查、筛选排序搜索、统计、表单校验、提示消息、HTML 转义和静态文件。
+
+### 桌面版
+
+安装桌面依赖：
+
+```powershell
+.\.venv\Scripts\python.exe -m pip install -r requirements-desktop.txt
+```
+
+直接打开原生窗口：
+
+```powershell
+.\.venv\Scripts\python.exe desktop.py
+```
+
+打包成单个 exe（在 Windows 上执行）：
+
+```powershell
+.\.venv\Scripts\pyinstaller.exe --noconfirm --clean --onefile --windowed --name TodoApp --add-data "app/templates;app/templates" --add-data "app/static;app/static" desktop.py
+```
+
+输出 `dist\TodoApp.exe`，双击即可运行，不需要浏览器或终端。说明：
+
+- 桌面版内部仍会启动本机 FastAPI，窗口由系统 WebView2 渲染；Windows 10/11 一般已自带，
+  缺少时安装 Microsoft Edge WebView2 Runtime。
+- 开发时数据库在 `data/todo.db`；打包后写到 `%LOCALAPPDATA%\todo-cli\todo.db`，
+  日志在同目录的 `app.log`，不会写进临时解压目录。
+- `desktop.py --headless --port 8123` 可以只启动服务，便于自动化测试。
+- `--add-data` 的分隔符在 Windows 上是 `;`，Linux/macOS 上换成 `:`。
+
+### 项目结构
+
+```text
+app/
+├── main.py          # FastAPI 路由和页面渲染
+├── db.py            # SQLite 建表、增删改查、筛选和统计
+├── templates/       # Jinja2 模板
+└── static/          # CSS、JS、favicon
+desktop.py           # PyWebView 桌面入口
+tests/               # pytest 测试
+requirements.txt     # Web 运行依赖
+requirements-dev.txt # Web + 测试依赖
+requirements-desktop.txt # 桌面和打包依赖
+pyproject.toml       # pytest 配置
+```
+
+### 依赖之间的关系
+
+- **FastAPI**：定义路由、处理请求并生成响应；安装时会自动带上 Starlette 和 Pydantic。
+- **uvicorn**：真正启动 HTTP 服务、监听端口的服务器，负责把请求交给 FastAPI。
+- **Jinja2**：模板引擎，把 HTML 模板和数据渲染成浏览器看到的页面。
+- **StaticFiles**：Starlette 提供的静态文件服务，把 `/static/` 映射到 `app/static/`。
+- **python-multipart**：解析新增和编辑表单的提交内容。
+- **pytest / httpx2**：仅开发依赖，分别用于运行测试和模拟浏览器请求。
+- **pywebview / pyinstaller**：仅桌面版依赖，分别负责原生窗口和打包 exe。
+
+### 开发进度
+
+- [x] 阶段 1：FastAPI 脚手架、首页、静态文件
+- [x] 阶段 2：SQLite 建表和增删改查
+- [x] 阶段 3：筛选、排序、搜索、统计
+- [x] 阶段 4：样式与交互
+- [x] 阶段 5：pytest 测试和文档
+- [x] 阶段 6：PyWebView 打包桌面应用
+
+## CLI 版本（旧）
+
+以下为旧的命令行版本说明，暂时保留；Web 版完成后会重新整理。
 
 ## 环境
 
 安装 Python 3.7 或以上版本。程序只使用标准库，无需安装第三方依赖。
 在终端进入 `todo_cli` 目录后运行下面的命令。
 
-## 快速开始
+## CLI 快速开始
 
 Linux：
 

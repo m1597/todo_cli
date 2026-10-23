@@ -4,10 +4,21 @@
 # Python 运行时生成的缓存。
 __pycache__/
 *.py[cod]
+.pytest_cache/
+.ruff_cache/
 
 # 本地虚拟环境。
 /.venv/
 /venv/
+
+# Web 版本地数据。
+/data/
+*.db
+
+# PyInstaller 构建产物。
+/build/
+/dist/
+*.spec
 
 # 本地编辑器与工具配置。
 /.vscode/

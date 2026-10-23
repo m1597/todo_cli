@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+
+{% block title %}编辑待办 · {{ super() }}{% endblock %}
+
+{% block content %}
+<header class="page-header">
+  <div>
+    <h1>编辑待办</h1>
+    <p class="subtitle">编号 {{ task.id }}</p>
+  </div>
+</header>
+
+{% if error %}
+<div class="alert">{{ error }}</div>
+{% endif %}
+
+<section class="panel">
+  <form method="post" action="/tasks/{{ task.id }}/edit" class="task-form">
+    <div class="field field-grow">
+      <label for="title">内容</label>
+      <input id="title" name="title" type="text" value="{{ task.title }}" required>
+    </div>
+    <div class="field">
+      <label for="priority">优先级</label>
+      <select id="priority" name="priority">
+        <option value="high" {{ 'selected' if task.priority == 'high' else '' }}>高</option>
+        <option value="medium" {{ 'selected' if task.priority == 'medium' else '' }}>中</option>
+        <option value="low" {{ 'selected' if task.priority == 'low' else '' }}>低</option>
+      </select>
+    </div>
+    <div class="field">
+      <label for="due">截止日期</label>
+      <input id="due" name="due" type="date" value="{{ task.due or '' }}">
+    </div>
+    <div class="field field-grow">
+      <label for="tags">标签</label>
+      <input id="tags" name="tags" type="text" value="{{ task.tags | join(', ') }}"
+             placeholder="用逗号分隔，例如：生活,购物">
+    </div>
+    <div class="form-actions">
+      <button type="submit" class="primary">保存</button>
+      <a class="button" href="/">取消</a>
+    </div>
+  </form>
+</section>
+{% endblock %}
