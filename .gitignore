@@ -8,3 +8,7 @@ __pycache__/
 # 本地虚拟环境。
 /.venv/
 /venv/
+
+# 本地编辑器与工具配置。
+/.vscode/
+/opencode.json
