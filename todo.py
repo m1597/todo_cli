@@ -39,6 +39,8 @@ def main():
     done_parser = commands.add_parser("done", help="标记待办为完成")
     # type=int 自动把编号转成整数；输入非整数时 argparse 会提示错误。
     done_parser.add_argument("id", type=int, help="待办编号")
+    del_parser = commands.add_parser("del", help="删除待办")
+    del_parser.add_argument("id", type=int, help="待办编号")
     args = parser.parse_args()
 
     # strip() 去掉内容两端的空白，防止添加只包含空格的待办。
@@ -67,7 +69,18 @@ def main():
                 task["done"] = True
                 save_tasks(tasks)
                 print(f"已完成待办 {args.id}：{task['title']}")
-        # 前面已处理 add 和 done，剩下的情况就是 list。
+        elif args.command == "del":
+            # enumerate 同时得到下标和待办，删除时需要下标。
+            index = next(
+                (index for index, task in enumerate(tasks) if task["id"] == args.id),
+                None,
+            )
+            if index is None:
+                parser.exit(1, f"找不到编号为 {args.id} 的待办\n")
+            removed = tasks.pop(index)
+            save_tasks(tasks)
+            print(f"已删除待办 {removed['id']}：{removed['title']}")
+        # 前面已处理 add、done 和 del，剩下的情况就是 list。
         elif not tasks:
             print("暂无待办")
         else:
