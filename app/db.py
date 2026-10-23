@@ -13,6 +13,7 @@ DB_PATH = Path(os.environ.get("TODO_DB", BASE_DIR / "data" / "todo.db"))
 
 PRIORITY_LABELS = {"high": "高", "medium": "中", "low": "低"}
 PRIORITY_KEYS = {"高": "high", "中": "medium", "低": "low"}
+PRIORITY_ORDER = {"high": 0, "medium": 1, "low": 2}
 
 
 @contextmanager
@@ -96,13 +97,68 @@ def row_to_task(row):
         task["tags"] = json.loads(task["tags"] or "[]")
     except (TypeError, json.JSONDecodeError):
         task["tags"] = []
+    task["overdue"] = False
+    if not task["done"] and task["due"]:
+        try:
+            task["overdue"] = date.fromisoformat(task["due"]) < date.today()
+        except ValueError:
+            task["overdue"] = False
     return task
 
 
-def list_tasks():
+def list_tasks(status="all", priority="", tag="", search="", sort="id"):
+    """按状态、优先级、标签和关键词筛选，再按指定字段排序。"""
+    clauses = []
+    params = []
+
+    if status == "pending":
+        clauses.append("done = 0")
+    elif status == "done":
+        clauses.append("done = 1")
+    elif status == "overdue":
+        clauses.append("done = 0 AND due IS NOT NULL AND due < ?")
+        params.append(date.today().isoformat())
+
+    if priority:
+        clauses.append("priority = ?")
+        params.append(priority)
+
+    if search:
+        # lower() 只影响英文字母；中文按原样做子串匹配。
+        clauses.append("instr(lower(title), lower(?)) > 0")
+        params.append(search)
+
+    sql = "SELECT * FROM tasks"
+    if clauses:
+        sql += " WHERE " + " AND ".join(clauses)
+    sql += " ORDER BY id"
+
     with get_conn() as conn:
-        rows = conn.execute("SELECT * FROM tasks ORDER BY id").fetchall()
-    return [row_to_task(row) for row in rows]
+        rows = conn.execute(sql, params).fetchall()
+    tasks = [row_to_task(row) for row in rows]
+
+    if tag:
+        tasks = [
+            task
+            for task in tasks
+            if any(tag.casefold() == item.casefold() for item in task["tags"])
+        ]
+    return sort_tasks(tasks, sort)
+
+
+def sort_tasks(tasks, sort):
+    """按优先级或截止日期排序；编号顺序是数据库的默认顺序。"""
+    if sort == "priority":
+        return sorted(
+            tasks,
+            key=lambda task: (PRIORITY_ORDER.get(task["priority"], 9), task["id"]),
+        )
+    if sort == "due":
+        return sorted(
+            tasks,
+            key=lambda task: (task["due"] is None, task["due"] or "", task["id"]),
+        )
+    return tasks
 
 
 def get_task(task_id):
@@ -181,10 +237,34 @@ def clear_completed():
 
 
 def stats():
+    today = date.today().isoformat()
     with get_conn() as conn:
         row = conn.execute(
-            "SELECT COUNT(*) AS total, COALESCE(SUM(done), 0) AS done FROM tasks"
+            """
+            SELECT
+                COUNT(*) AS total,
+                COALESCE(SUM(done), 0) AS done,
+                COALESCE(SUM(
+                    CASE WHEN done = 0 AND due IS NOT NULL AND due < ? THEN 1 ELSE 0 END
+                ), 0) AS overdue
+            FROM tasks
+            """,
+            (today,),
         ).fetchone()
+        priority_rows = conn.execute(
+            "SELECT priority, COUNT(*) AS count FROM tasks GROUP BY priority"
+        ).fetchall()
+
     total = row["total"]
     done = row["done"]
-    return {"total": total, "done": done, "pending": total - done}
+    priority_counts = {key: 0 for key in PRIORITY_LABELS}
+    for priority_row in priority_rows:
+        priority_counts[priority_row["priority"]] = priority_row["count"]
+
+    return {
+        "total": total,
+        "done": done,
+        "pending": total - done,
+        "overdue": row["overdue"],
+        "priority": priority_counts,
+    }

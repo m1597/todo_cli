@@ -15,3 +15,9 @@ document.querySelectorAll(".clear-form").forEach((form) => {
     }
   });
 });
+
+document.querySelectorAll(".filter-form select").forEach((select) => {
+  select.addEventListener("change", () => {
+    select.form.requestSubmit();
+  });
+});

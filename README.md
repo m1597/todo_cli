@@ -35,6 +35,15 @@ python -m pip install -r requirements-dev.txt
 编辑、删除，以及一键清空已完成。数据保存在 `data/todo.db`（SQLite），
 首次启动时自动创建，已被 `.gitignore` 排除。
 
+“筛选与排序”区域支持按状态（全部、未完成、已完成、已逾期）、优先级和标签筛选，
+按标题搜索，以及按编号、优先级、截止日期排序。这些条件也可以直接写在 URL 里，例如：
+
+```text
+http://127.0.0.1:8000/?status=pending&priority=high&tag=工作&q=周报&sort=due
+```
+
+页面顶部的统计会显示总数、未完成、已完成、已逾期，以及各优先级的数量。
+
 ### 依赖之间的关系
 
 - **FastAPI**：定义路由、处理请求并生成响应；安装时会自动带上 Starlette 和 Pydantic。
@@ -47,7 +56,7 @@ python -m pip install -r requirements-dev.txt
 
 - [x] 阶段 1：FastAPI 脚手架、首页、静态文件
 - [x] 阶段 2：SQLite 建表和增删改查
-- [ ] 阶段 3：筛选、排序、搜索、统计
+- [x] 阶段 3：筛选、排序、搜索、统计
 - [ ] 阶段 4：样式与交互
 - [ ] 阶段 5：pytest 测试和文档
 - [ ] 阶段 6：PyWebView 打包桌面应用

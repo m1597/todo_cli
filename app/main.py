@@ -28,16 +28,32 @@ app.mount("/static", StaticFiles(directory=BASE_DIR / "static"), name="static")
 # Jinja2 负责把 templates 里的 HTML 模板渲染成最终页面。
 templates = Jinja2Templates(directory=BASE_DIR / "templates")
 
+FILTER_STATUSES = ("all", "pending", "done", "overdue")
+SORT_OPTIONS = ("id", "priority", "due")
 
-def render_index(request: Request, error=None, status_code=200):
+
+def normalize_filters(status="all", priority="", tag="", q="", sort="id"):
+    """把 URL 参数收敛到允许的取值，避免非法参数影响查询。"""
+    return {
+        "status": status if status in FILTER_STATUSES else "all",
+        "priority": priority if priority in db.PRIORITY_LABELS else "",
+        "tag": (tag or "").strip(),
+        "search": (q or "").strip(),
+        "sort": sort if sort in SORT_OPTIONS else "id",
+    }
+
+
+def render_index(request: Request, filters=None, error=None, status_code=200):
+    filters = filters or normalize_filters()
     return templates.TemplateResponse(
         request=request,
         name="index.html",
         context={
             "title": "待办清单",
-            "tasks": db.list_tasks(),
+            "tasks": db.list_tasks(**filters),
             "stats": db.stats(),
             "priorities": db.PRIORITY_LABELS,
+            "filters": filters,
             "error": error,
         },
         status_code=status_code,
@@ -45,9 +61,17 @@ def render_index(request: Request, error=None, status_code=200):
 
 
 @app.get("/", response_class=HTMLResponse)
-def index(request: Request):
-    """显示待办列表和新增表单。"""
-    return render_index(request)
+def index(
+    request: Request,
+    status: str = "all",
+    priority: str = "",
+    tag: str = "",
+    q: str = "",
+    sort: str = "id",
+):
+    """显示待办列表，并支持按条件筛选和排序。"""
+    filters = normalize_filters(status, priority, tag, q, sort)
+    return render_index(request, filters=filters)
 
 
 @app.post("/tasks")
