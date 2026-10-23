@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+
+{% block content %}
+<header class="page-header">
+  <div>
+    <h1>待办清单</h1>
+    <p class="subtitle">Web 版正在搭建中，下一步接入数据库和增删改查。</p>
+  </div>
+</header>
+
+<section class="panel">
+  <h2>脚手架已就绪</h2>
+  <p>如果你能看到这个页面，说明下面这些组件已经正常协同工作：</p>
+  <ul class="checklist">
+    <li>FastAPI：接收浏览器请求并返回页面</li>
+    <li>uvicorn：启动服务、监听本机端口</li>
+    <li>Jinja2：把模板和数据渲染成 HTML</li>
+    <li>StaticFiles：提供 CSS 和 JavaScript 文件</li>
+  </ul>
+  <p class="muted">数据库（SQLite）会在下一阶段接入。</p>
+</section>
+{% endblock %}

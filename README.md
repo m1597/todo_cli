@@ -1,14 +1,61 @@
-# 命令行待办清单
+# 待办清单
 
-一个用于学习 Python 和 vibe coding 的小项目，支持添加、查看、编辑、删除、
-标记完成、优先级、截止日期、标签、筛选、搜索和统计。
+一个用于学习 Python 和 vibe coding 的小项目，正在从命令行版本迁移到本地 Web 应用。
+
+## Web 版（开发中）
+
+技术栈：Python + FastAPI + SQLite + Jinja2 + 原生 HTML/CSS/JS。
+
+### 环境与安装
+
+需要 Python 3.10 或以上版本。在 `todo_cli` 目录执行：
+
+```powershell
+python -m venv .venv
+.\.venv\Scripts\Activate.ps1
+python -m pip install -r requirements-dev.txt
+```
+
+- `.venv/` 是本项目独立的 Python 环境，依赖不会污染系统全局环境。
+- `requirements.txt` 是运行依赖；`requirements-dev.txt` 额外包含测试工具。
+- 如果 PowerShell 禁止运行 `Activate.ps1`，可以直接用 `.\.venv\Scripts\python.exe` 代替
+  `python`，或临时执行 `Set-ExecutionPolicy -Scope Process Bypass`。
+
+### 启动
+
+```powershell
+.\.venv\Scripts\python.exe -m uvicorn app.main:app --reload
+```
+
+然后在浏览器打开 <http://127.0.0.1:8000>。`--reload` 会在代码变化时自动重启服务，只用于开发。
+
+### 依赖之间的关系
+
+- **FastAPI**：定义路由、处理请求并生成响应；安装时会自动带上 Starlette 和 Pydantic。
+- **uvicorn**：真正启动 HTTP 服务、监听端口的服务器，负责把请求交给 FastAPI。
+- **Jinja2**：模板引擎，把 HTML 模板和数据渲染成浏览器看到的页面。
+- **StaticFiles**：Starlette 提供的静态文件服务，把 `/static/` 映射到 `app/static/`。
+- **python-multipart**：解析表单提交，下一阶段添加待办时会用到。
+
+### 开发进度
+
+- [x] 阶段 1：FastAPI 脚手架、首页、静态文件
+- [ ] 阶段 2：SQLite 建表和增删改查
+- [ ] 阶段 3：筛选、排序、搜索、统计
+- [ ] 阶段 4：样式与交互
+- [ ] 阶段 5：pytest 测试和文档
+- [ ] 阶段 6：PyWebView 打包桌面应用
+
+## CLI 版本（旧）
+
+以下为旧的命令行版本说明，暂时保留；Web 版完成后会重新整理。
 
 ## 环境
 
 安装 Python 3.7 或以上版本。程序只使用标准库，无需安装第三方依赖。
 在终端进入 `todo_cli` 目录后运行下面的命令。
 
-## 快速开始
+## CLI 快速开始
 
 Linux：
 
