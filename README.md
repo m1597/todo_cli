@@ -45,6 +45,17 @@ http://127.0.0.1:8000/?status=pending&priority=high&tag=工作&q=周报&sort=due
 页面顶部的统计会显示总数、未完成、已完成、已逾期，以及各优先级的数量。
 操作成功后会显示绿色提示；表单校验失败时会保留刚填写的内容。
 
+### 测试
+
+测试使用 `pytest` 和 `httpx2`。每个测试通过 `TODO_DB` 环境变量指向临时数据库，
+不会读写 `data/todo.db`：
+
+```powershell
+.\.venv\Scripts\python.exe -m pytest
+```
+
+测试覆盖增删改查、筛选排序搜索、统计、表单校验、提示消息、HTML 转义和静态文件。
+
 ### 依赖之间的关系
 
 - **FastAPI**：定义路由、处理请求并生成响应；安装时会自动带上 Starlette 和 Pydantic。
@@ -52,6 +63,7 @@ http://127.0.0.1:8000/?status=pending&priority=high&tag=工作&q=周报&sort=due
 - **Jinja2**：模板引擎，把 HTML 模板和数据渲染成浏览器看到的页面。
 - **StaticFiles**：Starlette 提供的静态文件服务，把 `/static/` 映射到 `app/static/`。
 - **python-multipart**：解析新增和编辑表单的提交内容。
+- **pytest / httpx2**：仅开发依赖，分别用于运行测试和模拟浏览器请求。
 
 ### 开发进度
 
@@ -59,7 +71,7 @@ http://127.0.0.1:8000/?status=pending&priority=high&tag=工作&q=周报&sort=due
 - [x] 阶段 2：SQLite 建表和增删改查
 - [x] 阶段 3：筛选、排序、搜索、统计
 - [x] 阶段 4：样式与交互
-- [ ] 阶段 5：pytest 测试和文档
+- [x] 阶段 5：pytest 测试和文档
 - [ ] 阶段 6：PyWebView 打包桌面应用
 
 ## CLI 版本（旧）

@@ -9,17 +9,22 @@ from pathlib import Path
 
 # app/db.py 的上两级是项目根目录；数据库默认放在 data/ 下。
 BASE_DIR = Path(__file__).resolve().parent.parent
-DB_PATH = Path(os.environ.get("TODO_DB", BASE_DIR / "data" / "todo.db"))
+DEFAULT_DB_PATH = BASE_DIR / "data" / "todo.db"
 
 PRIORITY_LABELS = {"high": "高", "medium": "中", "low": "低"}
 PRIORITY_KEYS = {"高": "high", "中": "medium", "低": "low"}
 PRIORITY_ORDER = {"high": 0, "medium": 1, "low": 2}
 
 
+def get_db_path():
+    """每次调用时读取环境变量，测试可以用 TODO_DB 指向临时数据库。"""
+    return Path(os.environ.get("TODO_DB", DEFAULT_DB_PATH))
+
+
 @contextmanager
 def get_conn():
     """打开数据库连接；正常结束时提交，出错时回滚，最后一定关闭。"""
-    conn = sqlite3.connect(DB_PATH)
+    conn = sqlite3.connect(get_db_path())
     conn.row_factory = sqlite3.Row
     try:
         yield conn
@@ -33,7 +38,8 @@ def get_conn():
 
 def init_db():
     """创建数据目录和 tasks 表；重复调用不会报错。"""
-    DB_PATH.parent.mkdir(parents=True, exist_ok=True)
+    db_path = get_db_path()
+    db_path.parent.mkdir(parents=True, exist_ok=True)
     with get_conn() as conn:
         conn.execute(
             """
