@@ -29,18 +29,24 @@ python -m pip install -r requirements-dev.txt
 
 然后在浏览器打开 <http://127.0.0.1:8000>。`--reload` 会在代码变化时自动重启服务，只用于开发。
 
+### 使用
+
+在页面上可以添加待办（内容、优先级、截止日期、标签）、点击圆圈切换完成状态、
+编辑、删除，以及一键清空已完成。数据保存在 `data/todo.db`（SQLite），
+首次启动时自动创建，已被 `.gitignore` 排除。
+
 ### 依赖之间的关系
 
 - **FastAPI**：定义路由、处理请求并生成响应；安装时会自动带上 Starlette 和 Pydantic。
 - **uvicorn**：真正启动 HTTP 服务、监听端口的服务器，负责把请求交给 FastAPI。
 - **Jinja2**：模板引擎，把 HTML 模板和数据渲染成浏览器看到的页面。
 - **StaticFiles**：Starlette 提供的静态文件服务，把 `/static/` 映射到 `app/static/`。
-- **python-multipart**：解析表单提交，下一阶段添加待办时会用到。
+- **python-multipart**：解析新增和编辑表单的提交内容。
 
 ### 开发进度
 
 - [x] 阶段 1：FastAPI 脚手架、首页、静态文件
-- [ ] 阶段 2：SQLite 建表和增删改查
+- [x] 阶段 2：SQLite 建表和增删改查
 - [ ] 阶段 3：筛选、排序、搜索、统计
 - [ ] 阶段 4：样式与交互
 - [ ] 阶段 5：pytest 测试和文档

@@ -4,19 +4,89 @@
 <header class="page-header">
   <div>
     <h1>待办清单</h1>
-    <p class="subtitle">Web 版正在搭建中，下一步接入数据库和增删改查。</p>
+    <p class="subtitle">
+      共 {{ stats.total }} 条 · 未完成 {{ stats.pending }} · 已完成 {{ stats.done }}
+    </p>
   </div>
 </header>
 
+{% if error %}
+<div class="alert">{{ error }}</div>
+{% endif %}
+
 <section class="panel">
-  <h2>脚手架已就绪</h2>
-  <p>如果你能看到这个页面，说明下面这些组件已经正常协同工作：</p>
-  <ul class="checklist">
-    <li>FastAPI：接收浏览器请求并返回页面</li>
-    <li>uvicorn：启动服务、监听本机端口</li>
-    <li>Jinja2：把模板和数据渲染成 HTML</li>
-    <li>StaticFiles：提供 CSS 和 JavaScript 文件</li>
-  </ul>
-  <p class="muted">数据库（SQLite）会在下一阶段接入。</p>
+  <h2>添加待办</h2>
+  <form method="post" action="/tasks" class="task-form">
+    <div class="field field-grow">
+      <label for="title">内容</label>
+      <input id="title" name="title" type="text" placeholder="例如：买牛奶" required>
+    </div>
+    <div class="field">
+      <label for="priority">优先级</label>
+      <select id="priority" name="priority">
+        <option value="high">高</option>
+        <option value="medium" selected>中</option>
+        <option value="low">低</option>
+      </select>
+    </div>
+    <div class="field">
+      <label for="due">截止日期</label>
+      <input id="due" name="due" type="date">
+    </div>
+    <div class="field field-grow">
+      <label for="tags">标签</label>
+      <input id="tags" name="tags" type="text" placeholder="用逗号分隔，例如：生活,购物">
+    </div>
+    <button type="submit" class="primary">添加</button>
+  </form>
 </section>
+
+<section class="task-list">
+  {% if tasks %}
+    {% for task in tasks %}
+    <article class="task{{ ' is-done' if task.done else '' }}">
+      <form method="post" action="/tasks/{{ task.id }}/toggle" class="toggle-form">
+        <button type="submit" class="toggle" title="{{ '标记为未完成' if task.done else '标记为完成' }}">
+          {{ '✓' if task.done else '' }}
+        </button>
+      </form>
+
+      <div class="task-body">
+        <div class="task-title-row">
+          <span class="task-title">{{ task.title }}</span>
+          <span class="badge priority-{{ task.priority if task.priority in priorities else 'medium' }}">
+            {{ priorities.get(task.priority, '中') }}
+          </span>
+          {% if task.due %}
+          <span class="badge due">{{ task.due }}</span>
+          {% endif %}
+        </div>
+        {% if task.tags %}
+        <div class="tags">
+          {% for tag in task.tags %}<span class="tag">#{{ tag }}</span>{% endfor %}
+        </div>
+        {% endif %}
+      </div>
+
+      <div class="task-actions">
+        <a class="button" href="/tasks/{{ task.id }}/edit">编辑</a>
+        <form method="post" action="/tasks/{{ task.id }}/delete" class="delete-form">
+          <button type="submit" class="danger">删除</button>
+        </form>
+      </div>
+    </article>
+    {% endfor %}
+  {% else %}
+    <div class="empty">
+      <p class="empty-title">还没有待办</p>
+      <p class="muted">在上面添加第一条吧。</p>
+    </div>
+  {% endif %}
+</section>
+
+{% if stats.done %}
+<form method="post" action="/tasks/clear" class="clear-form">
+  <button type="submit" class="ghost">清空已完成（{{ stats.done }}）</button>
+</form>
+{% endif %}
 {% endblock %}
