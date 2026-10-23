@@ -1,77 +1,203 @@
 # 命令行待办清单
 
-一个用于学习 Python 和 vibe coding 的小项目，支持添加、查看、编辑、标记完成和删除。
+一个用于学习 Python 和 vibe coding 的小项目，支持添加、查看、编辑、删除、
+标记完成、优先级、截止日期、标签、筛选、搜索和统计。
 
 ## 环境
 
 安装 Python 3.7 或以上版本。程序只使用标准库，无需安装第三方依赖。
 在终端进入 `todo_cli` 目录后运行下面的命令。
 
-## 运行方法
+## 快速开始
 
 Linux：
 
 ```bash
-python3 todo.py add "学习 Python"
-python3 todo.py edit 1 "学习 Python 基础"
+python3 todo.py add "买牛奶" -p high -d 2026-10-30 -t 生活
 python3 todo.py list
 python3 todo.py done 1
-python3 todo.py del 1
+python3 todo.py stats
 ```
 
 Windows（PowerShell 或命令提示符）：
 
 ```powershell
-py todo.py add "学习 Python"
-py todo.py edit 1 "学习 Python 基础"
+py todo.py add "买牛奶" -p high -d 2026-10-30 -t 生活
 py todo.py list
 py todo.py done 1
-py todo.py del 1
+py todo.py stats
 ```
 
 如果你的环境已经配置了 `python` 命令，也可以用它替换 `python3` 或 `py`。
-待办内容请用双引号包起来；`done` 和 `del` 后面填写实际的待办编号。
-`edit` 后面先写编号，再写新的待办内容。
+待办内容和标签包含空格时请用双引号包起来。
+
+## 命令一览
+
+| 命令 | 作用 |
+| --- | --- |
+| `add` | 添加待办，可带优先级、截止日期和标签 |
+| `list` | 查看待办，可筛选和排序 |
+| `done` | 标记为已完成 |
+| `undone` | 改回未完成 |
+| `edit` | 修改标题、优先级、截止日期或标签 |
+| `del` | 删除一条待办 |
+| `clear` | 批量清空已完成或全部待办 |
+| `search` | 按关键词搜索标题和标签 |
+| `stats` | 查看完成情况、逾期数量和优先级分布 |
 
 查看帮助：
 
 ```bash
 python todo.py --help
 python todo.py add --help
+python todo.py list --help
 python todo.py edit --help
-python todo.py done --help
-python todo.py del --help
+python todo.py clear --help
 ```
 
-Linux 或 Windows 上同样可以按上述规则替换 `python`。
+## 添加待办 add
+
+```bash
+python todo.py add "写周报" -p high -d 2026-11-01 -t 工作 -t 重要
+```
+
+- `-p` / `--priority`：优先级，可选 `high`、`medium`、`low`，也接受 `高`、`中`、`低`，默认 `medium`。
+- `-d` / `--due`：截止日期，格式 `YYYY-MM-DD`。
+- `-t` / `--tag`：标签，可以重复使用；开头的 `#` 会自动去掉。
+
+## 查看待办 list
+
+```bash
+python todo.py list                 # 全部
+python todo.py list --pending       # 只看未完成
+python todo.py list --done          # 只看已完成
+python todo.py list --overdue       # 只看已逾期
+python todo.py list -p high         # 只看高优先级
+python todo.py list -t 工作          # 只看某个标签
+python todo.py list -s 周报          # 按关键词搜索标题
+python todo.py list --sort priority # 按优先级排序
+python todo.py list --sort due      # 按截止日期排序
+```
+
+筛选条件可以组合使用，例如“未完成的高优先级工作”：
+
+```bash
+python todo.py list --pending -p high -t 工作
+```
+
+`--sort` 可选 `id`（默认）、`priority`、`due`；没有截止日期的排在最后。
+
+## 完成与取消 done / undone
+
+```bash
+python todo.py done 1
+python todo.py undone 1
+```
+
+重复完成或重复取消都会给出提示，不会报错。
+
+## 编辑待办 edit
+
+编号后面可以直接写新标题，也可以用参数只改某一项：
+
+```bash
+python todo.py edit 1 "买两盒牛奶"    # 改标题
+python todo.py edit 1 -p low          # 改优先级
+python todo.py edit 1 -d 2026-12-01   # 改截止日期
+python todo.py edit 1 --no-due        # 清空截止日期
+python todo.py edit 1 -t 日常 -t 购物 # 替换全部标签
+python todo.py edit 1 --no-tags       # 清空标签
+```
+
+至少需要指定一项要修改的内容，否则会提示错误。
+
+## 删除与批量清空 del / clear
+
+```bash
+python todo.py del 1          # 删除编号 1
+python todo.py clear          # 清空所有已完成（默认）
+python todo.py clear --all    # 清空全部
+python todo.py clear -y       # 跳过确认
+```
+
+`clear` 会先显示将要删除的数量，输入 `y` 确认；加 `-y` 可直接执行。
+
+## 搜索与统计 search / stats
+
+```bash
+python todo.py search 牛奶    # 标题或标签中包含关键词
+python todo.py stats
+```
+
+`stats` 输出示例：
+
+```text
+总计 3 条：未完成 2 条，已完成 1 条，已逾期 1 条
+  高优先级：1 条
+  中优先级：1 条
+  低优先级：1 条
+```
+
+## 显示格式
+
+```text
+1. [ ] [高] 买牛奶 @ 2026-10-30（已逾期） #生活 #购物
+```
+
+依次是：编号、完成状态（`[ ]` 未完成 / `[x]` 已完成）、优先级、
+标题、截止日期、逾期提示、标签。
+
+## 数据文件
+
+`tasks.json` 始终保存在 `todo.py` 所在目录，使用 UTF-8 编码，第一次修改待办时自动创建。
+它属于个人数据，已被 `.gitignore` 排除，不会提交到 Git。
+
+每条待办包含以下字段：
+
+```json
+{
+  "id": 1,
+  "title": "买牛奶",
+  "done": false,
+  "priority": "high",
+  "due": "2026-10-30",
+  "tags": ["生活", "购物"]
+}
+```
+
+- `priority`：`high`、`medium`、`low`
+- `due`：截止日期，没有时为 `null`
+- `tags`：标签列表，没有时为空列表
+
+旧版本只有 `id`、`title`、`done` 的数据也能直接读取，修改后会自动补齐新字段；
+带 BOM 的 UTF-8 文件同样兼容。
 
 ## 检查步骤
 
-1. 运行 `add "练习命令行"`，记录输出中的编号。
-2. 运行 `list`，确认新待办显示为 `[ ]`（未完成）。
-3. 运行 `edit 编号 "修改后的内容"`，将“编号”替换为第一步得到的数字。
-4. 再次运行 `list`，确认待办内容已经更新。
-5. 运行 `done 编号`，将“编号”替换为第一步得到的数字。
-6. 再次运行 `list`，确认这条待办显示为 `[x]`（已完成）。
-7. 再运行一次 `add "临时待办"`，记录新编号，然后运行 `del 新编号`。
-8. 运行 `list`，确认“临时待办”已经消失。
-9. 关闭终端，重新进入项目目录运行 `list`，确认完成状态仍然保留。
+1. 运行 `add "练习命令行" -p high -d 2026-12-31 -t 学习`，记录输出中的编号。
+2. 运行 `list`，确认显示未完成、高优先级、截止日期和标签。
+3. 运行 `list --pending -p high`，确认能筛选出这条待办。
+4. 运行 `edit 编号 "修改后的内容"`，确认标题已更新。
+5. 运行 `done 编号`，再用 `list --done` 确认状态为 `[x]`。
+6. 运行 `undone 编号`，确认又回到未完成。
+7. 再添加一条待办并运行 `del 新编号`，确认它已消失。
+8. 运行 `stats`，核对总数、完成数和优先级统计。
+9. 运行 `clear --done`，确认后检查已完成项被清空。
+10. 关闭终端，重新进入项目目录运行 `list`，确认剩余数据仍然保留。
 
-以上各步的命令前都需要加上 `python todo.py`，或对应系统的启动命令。
-没有待办时，`list` 显示“暂无待办”；重复完成会提示已经完成。
-空白内容、无效编号和不存在的编号会得到错误提示。
+空白内容、无效编号、错误日期和非法优先级都会得到错误提示。
 
 ## 文件安排
 
 ```text
 todo_cli/
 ├── todo.py       # 解析命令、操作待办、读取和保存数据
-├── tasks.json    # 第一次添加待办时自动创建
+├── tasks.json    # 第一次添加待办时自动创建（不提交）
 └── README.md     # 使用说明和检查步骤
 ```
 
-`tasks.json` 始终保存在 `todo.py` 所在目录，使用 UTF-8 编码保存中文。
-每条待办包含 `id`（编号）、`title`（内容）和 `done`（是否完成）。
+## 技术说明
 
 代码中，`argparse` 负责解析命令，`pathlib` 负责处理跨系统路径，
-`json` 负责把 Python 数据转换为文件内容以及读取回来。
+`json` 负责把 Python 数据转换为文件内容以及读取回来，
+`datetime.date` 负责校验和比较截止日期。整个项目只使用 Python 标准库。
