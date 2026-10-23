@@ -1,3 +1,13 @@
+{#
+  这是首页模板。Jinja2 的标记先记住三种：
+  1. 井号加大括号：模板注释，不会出现在最终 HTML 里
+  2. 百分号加大括号：控制语句，例如 extends、block、if、for
+  3. 双大括号：输出变量的值
+
+  变量名来自 app/main.py 里 TemplateResponse 的 context。
+  extends 表示先套用公共页面骨架，
+  下面 block content 里的内容会填进 base.html 预留的位置。
+#}
 {% extends "base.html" %}
 
 {% block content %}
@@ -8,10 +18,12 @@
   </div>
 </header>
 
+{# flash 是操作成功后的提示文字，没有消息时是 None（模板里当作假值）。 #}
 {% if flash %}
 <div class="flash" role="status" aria-live="polite">{{ flash }}</div>
 {% endif %}
 
+{# stats 是 main.py 里 db.stats() 返回的字典，用点号读取键，例如 stats.total。 #}
 <section class="stats">
   <div class="stat">
     <span class="stat-label">总计</span>
@@ -38,6 +50,7 @@
 <div class="alert">{{ error }}</div>
 {% endif %}
 
+{# 新增表单用 POST 提交到 /tasks；input 的 name 要和 main.py 里 Form(...) 的参数同名。 #}
 <section class="panel">
   <h2>添加待办</h2>
   <form method="post" action="/tasks" class="task-form">
@@ -67,6 +80,7 @@
   </form>
 </section>
 
+{# 筛选表单用 GET：提交后条件会出现在地址栏，例如 /?status=pending&sort=due。 #}
 <section class="panel filter-panel">
   <h2>筛选与排序</h2>
   <form method="get" action="/" class="task-form filter-form">
@@ -114,6 +128,7 @@
   <span class="muted">显示 {{ tasks | length }} 条</span>
 </div>
 
+{# tasks 是 db.list_tasks() 返回的列表；for 循环会为每条待办重复一次下面的 HTML。 #}
 <section class="task-list">
   {% if tasks %}
     {% for task in tasks %}
@@ -156,12 +171,14 @@
     </article>
     {% endfor %}
   {% elif stats.total == 0 %}
+    {# 数据库里一条都没有。 #}
     <div class="empty">
       <div class="empty-icon" aria-hidden="true">＋</div>
       <p class="empty-title">还没有待办</p>
       <p class="muted">在上面添加第一条吧。</p>
     </div>
   {% else %}
+    {# 数据库里有数据，但当前筛选条件没有匹配到。 #}
     <div class="empty">
       <div class="empty-icon" aria-hidden="true">⌕</div>
       <p class="empty-title">没有符合条件的待办</p>
@@ -170,6 +187,7 @@
   {% endif %}
 </section>
 
+{# 只有存在已完成待办时才显示清空按钮。 #}
 {% if stats.done %}
 <form method="post" action="/tasks/clear" class="clear-form">
   <button type="submit" class="ghost">清空已完成（{{ stats.done }}）</button>

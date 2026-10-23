@@ -1,3 +1,8 @@
+{#
+  编辑页也继承 base.html。
+  title 块里的 super() 表示保留 base.html 原来的标题内容。
+  input 的 value="..." 用来把数据库里的值填回输入框。
+#}
 {% extends "base.html" %}
 
 {% block title %}编辑待办 · {{ super() }}{% endblock %}

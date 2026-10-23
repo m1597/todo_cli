@@ -5,13 +5,16 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="color-scheme" content="light">
   <meta name="description" content="一个使用 FastAPI 和 SQLite 搭建的本地待办清单。">
+  {# 子模板可以覆盖 title 块，例如 edit.html 会改成“编辑待办”。 #}
   <title>{% block title %}待办清单{% endblock %}</title>
+  {# url_for('static', path='...') 会生成 /static/... 的正确地址。 #}
   <link rel="icon" type="image/svg+xml" href="{{ url_for('static', path='favicon.svg') }}">
   <link rel="stylesheet" href="{{ url_for('static', path='style.css') }}">
   <script src="{{ url_for('static', path='app.js') }}" defer></script>
 </head>
 <body>
   <main class="container">
+    {# 子模板的 content 块会填到这里。 #}
     {% block content %}{% endblock %}
   </main>
 </body>

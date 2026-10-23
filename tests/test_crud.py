@@ -1,8 +1,18 @@
-"""核心增删改查的接口测试。"""
+"""核心增删改查的接口测试。
+
+测试大多遵循三段式：
+1. Arrange：准备数据（调用接口或 fixture）
+2. Act：执行要测试的动作
+3. Assert：用 assert 检查结果是否符合预期
+
+pytest 会自动找出 test_ 开头的函数并逐个运行；
+任何一个 assert 失败，这个测试就算失败。
+"""
 
 from app import db
 
 
+# client 是 conftest.py 里的 fixture，pytest 看到参数名会自动注入。
 def test_empty_page(client):
     response = client.get("/")
     assert response.status_code == 200
@@ -10,6 +20,7 @@ def test_empty_page(client):
 
 
 def test_create_task(client):
+    # Act：模拟浏览器提交新增表单。follow_redirects=False 表示不要自动跟随重定向。
     response = client.post(
         "/tasks",
         data={
@@ -20,9 +31,11 @@ def test_create_task(client):
         },
         follow_redirects=False,
     )
+    # Assert：先检查服务器返回了 303，以及跳转地址里带了成功提示码。
     assert response.status_code == 303
     assert response.headers["location"] == "/?msg=added"
 
+    # 再直接查数据库，确认数据真的写进去了。
     tasks = db.list_tasks()
     assert len(tasks) == 1
     task = tasks[0]
@@ -32,6 +45,7 @@ def test_create_task(client):
     assert task["tags"] == ["生活", "购物"]
     assert task["done"] is False
 
+    # 最后检查页面上能看到这条待办。
     assert "买牛奶" in client.get("/").text
 
 
