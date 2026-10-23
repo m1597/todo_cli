@@ -2,23 +2,34 @@ import json
 import os
 import re
 import sqlite3
+import sys
 from contextlib import contextmanager
 from datetime import date
 from pathlib import Path
 
 
-# app/db.py 的上两级是项目根目录；数据库默认放在 data/ 下。
+# app/db.py 的上两级是项目根目录；开发时数据库放在 data/ 下。
 BASE_DIR = Path(__file__).resolve().parent.parent
-DEFAULT_DB_PATH = BASE_DIR / "data" / "todo.db"
 
 PRIORITY_LABELS = {"high": "高", "medium": "中", "low": "低"}
 PRIORITY_KEYS = {"高": "high", "中": "medium", "低": "low"}
 PRIORITY_ORDER = {"high": 0, "medium": 1, "low": 2}
 
 
+def default_db_path():
+    """开发时用项目内 data/；打包后写到用户数据目录，避免写进临时解压目录。"""
+    if getattr(sys, "frozen", False):
+        if os.name == "nt":
+            base = Path(os.environ.get("LOCALAPPDATA", Path.home()))
+        else:
+            base = Path.home() / ".local" / "share"
+        return base / "todo-cli" / "todo.db"
+    return BASE_DIR / "data" / "todo.db"
+
+
 def get_db_path():
     """每次调用时读取环境变量，测试可以用 TODO_DB 指向临时数据库。"""
-    return Path(os.environ.get("TODO_DB", DEFAULT_DB_PATH))
+    return Path(os.environ.get("TODO_DB", default_db_path()))
 
 
 @contextmanager

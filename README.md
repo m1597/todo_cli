@@ -56,6 +56,51 @@ http://127.0.0.1:8000/?status=pending&priority=high&tag=工作&q=周报&sort=due
 
 测试覆盖增删改查、筛选排序搜索、统计、表单校验、提示消息、HTML 转义和静态文件。
 
+### 桌面版
+
+安装桌面依赖：
+
+```powershell
+.\.venv\Scripts\python.exe -m pip install -r requirements-desktop.txt
+```
+
+直接打开原生窗口：
+
+```powershell
+.\.venv\Scripts\python.exe desktop.py
+```
+
+打包成单个 exe（在 Windows 上执行）：
+
+```powershell
+.\.venv\Scripts\pyinstaller.exe --noconfirm --clean --onefile --windowed --name TodoApp --add-data "app/templates;app/templates" --add-data "app/static;app/static" desktop.py
+```
+
+输出 `dist\TodoApp.exe`，双击即可运行，不需要浏览器或终端。说明：
+
+- 桌面版内部仍会启动本机 FastAPI，窗口由系统 WebView2 渲染；Windows 10/11 一般已自带，
+  缺少时安装 Microsoft Edge WebView2 Runtime。
+- 开发时数据库在 `data/todo.db`；打包后写到 `%LOCALAPPDATA%\todo-cli\todo.db`，
+  日志在同目录的 `app.log`，不会写进临时解压目录。
+- `desktop.py --headless --port 8123` 可以只启动服务，便于自动化测试。
+- `--add-data` 的分隔符在 Windows 上是 `;`，Linux/macOS 上换成 `:`。
+
+### 项目结构
+
+```text
+app/
+├── main.py          # FastAPI 路由和页面渲染
+├── db.py            # SQLite 建表、增删改查、筛选和统计
+├── templates/       # Jinja2 模板
+└── static/          # CSS、JS、favicon
+desktop.py           # PyWebView 桌面入口
+tests/               # pytest 测试
+requirements.txt     # Web 运行依赖
+requirements-dev.txt # Web + 测试依赖
+requirements-desktop.txt # 桌面和打包依赖
+pyproject.toml       # pytest 配置
+```
+
 ### 依赖之间的关系
 
 - **FastAPI**：定义路由、处理请求并生成响应；安装时会自动带上 Starlette 和 Pydantic。
@@ -64,6 +109,7 @@ http://127.0.0.1:8000/?status=pending&priority=high&tag=工作&q=周报&sort=due
 - **StaticFiles**：Starlette 提供的静态文件服务，把 `/static/` 映射到 `app/static/`。
 - **python-multipart**：解析新增和编辑表单的提交内容。
 - **pytest / httpx2**：仅开发依赖，分别用于运行测试和模拟浏览器请求。
+- **pywebview / pyinstaller**：仅桌面版依赖，分别负责原生窗口和打包 exe。
 
 ### 开发进度
 
@@ -72,7 +118,7 @@ http://127.0.0.1:8000/?status=pending&priority=high&tag=工作&q=周报&sort=due
 - [x] 阶段 3：筛选、排序、搜索、统计
 - [x] 阶段 4：样式与交互
 - [x] 阶段 5：pytest 测试和文档
-- [ ] 阶段 6：PyWebView 打包桌面应用
+- [x] 阶段 6：PyWebView 打包桌面应用
 
 ## CLI 版本（旧）
 

@@ -15,6 +15,11 @@ __pycache__/
 /data/
 *.db
 
+# PyInstaller 构建产物。
+/build/
+/dist/
+*.spec
+
 # 本地编辑器与工具配置。
 /.vscode/
 /opencode.json
