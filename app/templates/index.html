@@ -8,6 +8,10 @@
   </div>
 </header>
 
+{% if flash %}
+<div class="flash" role="status" aria-live="polite">{{ flash }}</div>
+{% endif %}
+
 <section class="stats">
   <div class="stat">
     <span class="stat-label">总计</span>
@@ -39,23 +43,25 @@
   <form method="post" action="/tasks" class="task-form">
     <div class="field field-grow">
       <label for="title">内容</label>
-      <input id="title" name="title" type="text" placeholder="例如：买牛奶" required>
+      <input id="title" name="title" type="text" value="{{ form.title }}"
+             placeholder="例如：买牛奶" required maxlength="200" autocomplete="off">
     </div>
     <div class="field">
       <label for="priority">优先级</label>
       <select id="priority" name="priority">
-        <option value="high">高</option>
-        <option value="medium" selected>中</option>
-        <option value="low">低</option>
+        <option value="high" {{ 'selected' if form.priority == 'high' else '' }}>高</option>
+        <option value="medium" {{ 'selected' if form.priority == 'medium' else '' }}>中</option>
+        <option value="low" {{ 'selected' if form.priority == 'low' else '' }}>低</option>
       </select>
     </div>
     <div class="field">
       <label for="due">截止日期</label>
-      <input id="due" name="due" type="date">
+      <input id="due" name="due" type="date" value="{{ form.due }}">
     </div>
     <div class="field field-grow">
       <label for="tags">标签</label>
-      <input id="tags" name="tags" type="text" placeholder="用逗号分隔，例如：生活,购物">
+      <input id="tags" name="tags" type="text" value="{{ form.tags }}"
+             placeholder="用逗号分隔，例如：生活,购物" autocomplete="off">
     </div>
     <button type="submit" class="primary">添加</button>
   </form>
@@ -113,7 +119,9 @@
     {% for task in tasks %}
     <article class="task{{ ' is-done' if task.done else '' }}">
       <form method="post" action="/tasks/{{ task.id }}/toggle" class="toggle-form">
-        <button type="submit" class="toggle" title="{{ '标记为未完成' if task.done else '标记为完成' }}">
+        <button type="submit" class="toggle"
+                title="{{ '标记为未完成' if task.done else '标记为完成' }}"
+                aria-label="{{ '标记待办 ' ~ task.id ~ ' 为未完成' if task.done else '标记待办 ' ~ task.id ~ ' 为完成' }}">
           {{ '✓' if task.done else '' }}
         </button>
       </form>
@@ -140,20 +148,22 @@
       </div>
 
       <div class="task-actions">
-        <a class="button" href="/tasks/{{ task.id }}/edit">编辑</a>
+        <a class="button" href="/tasks/{{ task.id }}/edit" aria-label="编辑待办 {{ task.id }}">编辑</a>
         <form method="post" action="/tasks/{{ task.id }}/delete" class="delete-form">
-          <button type="submit" class="danger">删除</button>
+          <button type="submit" class="danger" aria-label="删除待办 {{ task.id }}">删除</button>
         </form>
       </div>
     </article>
     {% endfor %}
   {% elif stats.total == 0 %}
     <div class="empty">
+      <div class="empty-icon" aria-hidden="true">＋</div>
       <p class="empty-title">还没有待办</p>
       <p class="muted">在上面添加第一条吧。</p>
     </div>
   {% else %}
     <div class="empty">
+      <div class="empty-icon" aria-hidden="true">⌕</div>
       <p class="empty-title">没有符合条件的待办</p>
       <p class="muted">试试重置筛选条件。</p>
     </div>

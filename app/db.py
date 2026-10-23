@@ -212,16 +212,17 @@ def update_task(task_id, title, priority, due="", tags=""):
 
 
 def toggle_task(task_id):
-    """在完成和未完成之间切换；编号不存在时返回 False。"""
+    """切换完成状态；返回切换后的状态，编号不存在时返回 None。"""
     with get_conn() as conn:
         row = conn.execute("SELECT done FROM tasks WHERE id = ?", (task_id,)).fetchone()
         if row is None:
-            return False
+            return None
+        new_done = not bool(row["done"])
         conn.execute(
             "UPDATE tasks SET done = ? WHERE id = ?",
-            (0 if row["done"] else 1, task_id),
+            (1 if new_done else 0, task_id),
         )
-    return True
+    return new_done
 
 
 def delete_task(task_id):
