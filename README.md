@@ -1,6 +1,6 @@
 # 命令行待办清单
 
-一个用于学习 Python 和 vibe coding 的小项目，支持添加、查看和标记完成。
+一个用于学习 Python 和 vibe coding 的小项目，支持添加、查看、标记完成和删除。
 
 ## 环境
 
@@ -15,6 +15,7 @@ Linux：
 python3 todo.py add "学习 Python"
 python3 todo.py list
 python3 todo.py done 1
+python3 todo.py del 1
 ```
 
 Windows（PowerShell 或命令提示符）：
@@ -23,10 +24,11 @@ Windows（PowerShell 或命令提示符）：
 py todo.py add "学习 Python"
 py todo.py list
 py todo.py done 1
+py todo.py del 1
 ```
 
 如果你的环境已经配置了 `python` 命令，也可以用它替换 `python3` 或 `py`。
-待办内容请用双引号包起来；`done` 后面填写实际的待办编号。
+待办内容请用双引号包起来；`done` 和 `del` 后面填写实际的待办编号。
 
 查看帮助：
 
@@ -34,6 +36,7 @@ py todo.py done 1
 python todo.py --help
 python todo.py add --help
 python todo.py done --help
+python todo.py del --help
 ```
 
 Linux 或 Windows 上同样可以按上述规则替换 `python`。
@@ -44,7 +47,9 @@ Linux 或 Windows 上同样可以按上述规则替换 `python`。
 2. 运行 `list`，确认新待办显示为 `[ ]`（未完成）。
 3. 运行 `done 编号`，将“编号”替换为第一步得到的数字。
 4. 再次运行 `list`，确认这条待办显示为 `[x]`（已完成）。
-5. 关闭终端，重新进入项目目录运行 `list`，确认完成状态仍然保留。
+5. 再运行一次 `add "临时待办"`，记录新编号，然后运行 `del 新编号`。
+6. 运行 `list`，确认“临时待办”已经消失。
+7. 关闭终端，重新进入项目目录运行 `list`，确认完成状态仍然保留。
 
 以上各步的命令前都需要加上 `python todo.py`，或对应系统的启动命令。
 没有待办时，`list` 显示“暂无待办”；重复完成会提示已经完成。
