@@ -41,10 +41,13 @@ def main():
     done_parser.add_argument("id", type=int, help="待办编号")
     del_parser = commands.add_parser("del", help="删除待办")
     del_parser.add_argument("id", type=int, help="待办编号")
+    edit_parser = commands.add_parser("edit", help="编辑待办内容")
+    edit_parser.add_argument("id", type=int, help="待办编号")
+    edit_parser.add_argument("title", help="新的待办内容，包含空格时请加双引号")
     args = parser.parse_args()
 
     # strip() 去掉内容两端的空白，防止添加只包含空格的待办。
-    if args.command == "add" and not args.title.strip():
+    if args.command in ("add", "edit") and not args.title.strip():
         parser.error("待办内容不能为空")
 
     try:
@@ -80,7 +83,15 @@ def main():
             removed = tasks.pop(index)
             save_tasks(tasks)
             print(f"已删除待办 {removed['id']}：{removed['title']}")
-        # 前面已处理 add、done 和 del，剩下的情况就是 list。
+        elif args.command == "edit":
+            # next() 找到第一个编号匹配的待办；没有匹配时返回 None。
+            task = next((task for task in tasks if task["id"] == args.id), None)
+            if task is None:
+                parser.exit(1, f"找不到编号为 {args.id} 的待办\n")
+            task["title"] = args.title.strip()
+            save_tasks(tasks)
+            print(f"已更新待办 {args.id}：{task['title']}")
+        # 前面已处理 add、done、del 和 edit，剩下的情况就是 list。
         elif not tasks:
             print("暂无待办")
         else:
